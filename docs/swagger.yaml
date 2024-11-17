@@ -1,0 +1,275 @@
+openapi: 3.0.3
+info:
+  title: API сервиса обработки гостей
+  version: 1.0.0
+servers:
+  - url: 'http://guest-processing-service.test/api'
+    description: Локальная среда
+
+tags:
+  - name: Гости
+
+paths:
+  /guests:
+    post:
+      summary: Создать нового гостя
+      tags:
+        - Гости
+      security:
+        - ApiKeyAuth: [ ]
+      requestBody:
+        $ref: '#/components/requestBodies/GuestRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuestResource'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+        '422':
+          description: Unprocessable Entity
+    get:
+      summary: Получить список гостей с фильтрацией и пагинацией
+      tags:
+        - Гости
+      security:
+        - ApiKeyAuth: [ ]
+      parameters:
+        - name: name
+          in: query
+          required: false
+          description: Фильтрация по имени гостя
+          schema:
+            type: string
+        - name: surname
+          in: query
+          required: false
+          description: Фильтрация по фамилии гостя
+          schema:
+            type: string
+        - name: country
+          in: query
+          required: false
+          description: Фильтрация по наименованию страны гостя
+          schema:
+            type: string
+        - name: phone
+          in: query
+          required: false
+          description: Фильтрация по номеру телефона гостя
+          schema:
+            type: string
+        - name: email
+          in: query
+          required: false
+          description: Фильтрация по адресу электронной почты гостя
+          schema:
+            type: string
+        - name: per_page
+          in: query
+          required: false
+          description: Количество записей на странице
+          schema:
+            type: integer
+        - name: page
+          in: query
+          required: false
+          description: Номер страницы
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuestCollectionResource'
+        '401':
+          description: Unauthorized
+        '422':
+          description: Unprocessable Entity
+
+  /guests/{guest_id}:
+    get:
+      summary: Получить данные гостя
+      tags:
+        - Гости
+      security:
+        - ApiKeyAuth: [ ]
+      parameters:
+        - name: guest_id
+          in: path
+          required: true
+          description: ID гостя
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuestResource'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+    put:
+      summary: Редактировать данные гостя
+      tags:
+        - Гости
+      security:
+        - ApiKeyAuth: [ ]
+      parameters:
+        - name: guest_id
+          in: path
+          required: true
+          description: ID гостя
+          schema:
+            type: integer
+      requestBody:
+        $ref: '#/components/requestBodies/GuestRequest'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuestResource'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+        '422':
+          description: Unprocessable Entity
+    delete:
+      summary: Удалить данные гостя
+      tags:
+        - Гости
+      security:
+        - ApiKeyAuth: [ ]
+      parameters:
+        - name: guest_id
+          in: path
+          required: true
+          description: ID гостя
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+  schemas:
+    GuestResource:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID гостя в сервисе
+        name:
+          type: string
+          description: Имя гостя
+        surname:
+          type: string
+          description: Фамилия гостя
+        email:
+          type: string
+          description: Адрес электронной почты гостя
+        phone:
+          type: string
+          description: Номер телефона гостя
+          example: '+79123456789'
+        country:
+          type: string
+          description: Наименование страны гостя
+    GuestCollectionResource:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/GuestResource'
+        meta:
+          $ref: '#/components/schemas/Pagination'
+    Pagination:
+      properties:
+        current_page:
+          type: integer
+        from:
+          type: integer
+        last_page:
+          type: integer
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/Links'
+        path:
+          type: string
+        per_page:
+          type: integer
+        to:
+          type: integer
+        total:
+          type: integer
+    Links:
+      properties:
+        url:
+          type: string
+        label:
+          type: string
+        active:
+          type: boolean
+  requestBodies:
+    GuestRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+              - surname
+              - email
+              - phone_code
+              - phone_number
+            properties:
+              name:
+                type: string
+                description: Имя гостя
+              surname:
+                type: string
+                description: Фамилия гостя
+              email:
+                type: string
+                description: Адрес электронной почты гостя
+              phone_code:
+                type: integer
+                description: Код номера телефона страны гостя
+                example: 7
+              phone_number:
+                type: string
+                description: Номер телефона гостя
+                example: 9123456789
+              country:
+                type: string
+                description: Наименование страны гостя
