@@ -1,66 +1,133 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<h1>
+Сервис обработки гостей. Тестовое задание для bnovo
+</h1>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Стек проекта
 
-## About Laravel
+Для ведения локальной разработки требуется:
+- **Nginx** - веб-сервер
+- **PHP**-FPM + CLI (v. 8.2) - интерпретатор языка
+- **Postgres** - СУБД для хранения данных
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### Настройка проекта
+Рекомендуется вести локальную разработку с использованием Docker.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Для запуска приложения и всех зависимостей необходимо выполнить следующие команды:
+```shell
+docker compose up -d
+```
+Затем необходимо в контейнере с базой данных создать тестовую БД
+```shell
+docker exec -it database sh
+psql
+```
+```postgresql
+CREATE DATABASE guest_processing_service;
+```
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Файл [docker-compose.yml](docker-compose.yml) определяет различные контейнеры,
+которые работают вместе для создания приложения.
+Каждый из этих контейнеров представлен как служба в конфигурации docker-compose.yml.
+Контейнер app является основной службой, которая будет запускать приложение.
 
-## Learning Laravel
+## Сборка проекта
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+После разворачивания проекта с помощью Docker необходимо перейти в контейнер
+с самим приложением, и также 4 команды для установки зависимостей используя Composer,
+генерации ключа, запуска миграций и тестового сидеры гостей.
+```shell
+docker exec -it app sh
+composer install
+php artisan key:generate
+php artisan migrate
+php artisan db:seed
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+После этого можно отправлять запросы к приложению по домену, который необходимо
+добавить в /etc/hosts. Для этого выполните:
+```shell
+sudo nano /etc/hosts
+```
+И добавьте следующую строку в ваш файл
+```
+127.0.0.1       guest-processing-service.test
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+При любых запросов к API сервиса необходимо отправлять API-ключ
+для авторизации в заголовке X-API-KEY, ключ сгенерирован автоматически и
+находится в файле .env.example в переменной API_KEY.
+Ключ является тестовым, механизма его замены и обновления в сервисе не предусмотрено.
 
-## Laravel Sponsors
+## Переменные среды
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Переменные среды описаны в файле [.env.example](.env.example), скопируйте файл, переименуйте его в `.env` и внесите необходимые изменения.
+Все параметры, которые могут потребоваться, вынесены в `.env.example`.
 
-### Premium Partners
+<details>
+    <summary>Описание параметров</summary>
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### Обязательные параметры
 
-## Contributing
+- `APP_KEY` - Секретный ключ приложения, заполняется командой `php artisan key:generate`
+- `APP_URL` - Ссылка на приложение
+- `DB_CONNECTION` - Драйвер для подключения к базе данных
+- `DB_HOST` - Хост для подключения к базе данных
+- `DB_PORT` - Порт для подключения к базе данных
+- `DB_DATABASE` - Название базы данных
+- `DB_USERNAME` - Имя пользователя в базе данных
+- `DB_PASSWORD` - Пароль пользователя в базе данных
+- `API_KEY` - API-ключ для авторизации
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+</details>
 
-## Code of Conduct
+## Анализ и стилизация кода
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+На проекте используется статический анализатор кода <b>PhpStan</b> и инструмент поддержки стилизации кода <b>Pint</b>.
 
-## Security Vulnerabilities
+### PhpStan
+PHPStan - это инструмент статического анализа кода на PHP, который помогает выявлять потенциальные ошибки, несоответствия типов данных и другие проблемы в PHP-коде еще до его выполнения.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Проверка кода на ошибки:
+```shell
+./vendor/bin/phpstan
+```
 
-## License
+<details>
+    <summary>Внесение исключений</summary>
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+    Не рекомендуется вносить изменения в файл phpstan.neon.
+    
+    Файл phpstan.neon представляет собой конфигурационный файл для PHPStan, 
+    который определяет различные параметры анализа, такие как уровень строгости, 
+    пути к файлам для анализа и настройки автозагрузки. 
+    
+    Внесение изменений непосредственно в этот файл может привести 
+    к нежелательным последствиям и нарушению работы, 
+    а также к более длительному поиску добавленного исключения.
+    
+    Вместо этого, для настройки PHPStan и внесения исключений 
+    рекомендуется использовать аннотации @phpstan-ignore-error или @phpstan-ignore-next-line. 
+    
+    Это позволит вам временно исключить определенные ошибки или предупреждения для конкретных файлов, 
+    классов или методов без необходимости изменения основных конфигурационных файлов.
+    
+    Использование аннотаций @phpstan-ignore-error и @phpstan-ignore-next-line следует ограничивать и 
+    применять только там, где это действительно необходимо из-за особенностей кода или взаимодействия 
+    с внешними библиотеками.
+</details>
+
+### Pint
+Pint - это инструмент для поддержки стилизации кода PHP в проектах Laravel. Он основан на PHP-CS-Fixer и обеспечивает простоту в поддержке чистоты кода.
+
+Исправление стилизации кода:
+```shell
+./vendor/bin/pint
+```
+
+## Техническая документация
+Вся техническая документация располагается в папке [docs](docs).
+
+### Информация по API для обращения к сервису
+
+Документирование API производится средствами Swagger/OpenAPI.
+В файле [swagger.yaml](docs/swagger.yaml) находится описание запросов к API проекта
