@@ -1,0 +1,45 @@
+version: '3'
+services:
+    nginx:
+        image: nginx
+        container_name: nginx
+        networks:
+            main:
+        volumes:
+            - ./docker/hosts:/etc/nginx/conf.d
+            - ./docker/config/nginx:/etc/nginx/config
+            - ./:/var/www/guest-processing-service
+            - ./docker/logs:/var/log/nginx
+        ports:
+            - 80:80
+            - 81:81
+            - "443:443"
+        depends_on:
+            - app
+            - database
+    app:
+        build: ./docker/images/php
+        restart: always
+        container_name: app
+        networks:
+            main:
+        volumes:
+            - ./docker/images/php/php.ini:/usr/local/etc/php/conf.d/php.ini
+            - ./docker/images/php/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+            - ./:/var/www/guest-processing-service
+    database:
+        image: postgres
+        container_name: database
+        networks:
+            main:
+        environment:
+            POSTGRES_USER: root
+            POSTGRES_PASSWORD: root
+        volumes:
+            - ./docker/db/postgres/data:/var/lib/postgresql/data
+            - ./docker/logs:/var/log/postgresql/
+        ports:
+            - "5432:5432"
+networks:
+    main:
+        external: true
