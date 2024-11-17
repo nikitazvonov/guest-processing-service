@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Guest\GuestController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,6 +14,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::group(['prefix' => 'guests', 'name' => 'guests.'], function () {
+    Route::post('/', [GuestController::class, 'store'])->name('store');
+    Route::get('/', [GuestController::class, 'index'])->name('index');
+    Route::get('/{guest_id}', [GuestController::class, 'show'])->name('show');
+    Route::put('/{guest_id}', [GuestController::class, 'update'])->name('update');
+    Route::delete('/{guest_id}', [GuestController::class, 'destroy'])->name('destroy');
 });
