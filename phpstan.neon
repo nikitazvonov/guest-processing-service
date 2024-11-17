@@ -1,0 +1,20 @@
+parameters:
+    paths:
+        - app/
+        - database/seeders
+        - routes/
+
+    # Level 9 is the highest level
+    level: 6
+
+    checkMissingCallableSignature: true
+    checkExplicitMixedMissingReturn: true
+    checkFunctionNameCase: true
+    checkInternalClassCaseSensitivity: true
+    reportMaybesInMethodSignatures: true
+    reportStaticMethodSignatures: true
+    checkTooWideReturnTypesInProtectedAndPublicMethods: true
+
+    exceptions:
+        check:
+            tooWideThrowType: true
