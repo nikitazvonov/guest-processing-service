@@ -37,10 +37,16 @@ CREATE DATABASE guest_processing_service;
 генерации ключа, запуска миграций и тестового сидеры гостей.
 ```shell
 docker exec -it app sh
+cd guest-processing-service
 composer install
 php artisan key:generate
 php artisan migrate
 php artisan db:seed
+```
+
+Затем необходимо скопировать файл .env.example в .env
+```shell
+cp .env.example .env
 ```
 
 После этого можно отправлять запросы к приложению по домену, который необходимо
